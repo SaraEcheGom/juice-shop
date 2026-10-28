@@ -16,6 +16,11 @@ export function retrieveBasket () {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id
+      const owner = security.authenticatedUsers.from(req)
+      if (!owner || owner.bid !== parseInt(id, 10)) {
+        res.status(401).send('Unauthorized access to basket')
+        return
+      }
       const basket = await BasketModel.findOne({ where: { id }, include: [{ model: ProductModel, paranoid: false, as: 'Products' }] })
       /* jshint eqeqeq:false */
       challengeUtils.solveIf(challenges.basketAccessChallenge, () => {
